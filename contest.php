@@ -32,11 +32,19 @@ while ($row = $res->fetch()) {
 	$res2=$connexion->prepare("SELECT *
 							FROM match_gamer AS mg
 							INNER JOIN gamer AS g ON g.idGAMER = mg.GAMER_idGAMER
-							WHERE mg.MATCH_idMATCH=:id;
+							WHERE mg.MATCH_idMATCH=:id
+							ORDER BY mg.Side;
 						");
 	$res2->execute(array(':id' => $row['idMATCH']));
+	$first = true;
+	$oldSide = -1;
 	while ($row2 = $res2->fetch()) {
-		echo "\t<a href='view.php?view=gamerProfil&id=".$row2['idGAMER']."'>".$row2['Name']."</a><br/>";
+		if($oldSide != $row2['Side'])
+			if (!$first)
+				echo "vs</br>";
+		$oldSide = $row2['Side'];
+		echo "<a href='view.php?view=gamerProfil&id=".$row2['idGAMER']."'>".$row2['Name']."</a><br/>";
+		$first = false;
 	}
 	echo "</p>";
 }

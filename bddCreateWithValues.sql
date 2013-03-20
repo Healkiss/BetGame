@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: Mar 19, 2013 at 08:30 AM
+-- Generation Time: Mar 20, 2013 at 01:55 PM
 -- Server version: 5.5.24-log
 -- PHP Version: 5.4.3
 
@@ -178,7 +178,9 @@ INSERT INTO `match_gamer` (`GAMER_idGAMER`, `MATCH_idMATCH`, `Side`) VALUES
 (1, 2, '1'),
 (1, 3, '2'),
 (2, 1, '2'),
+(3, 1, '1'),
 (3, 3, '1'),
+(4, 1, '2'),
 (4, 2, '2');
 
 -- --------------------------------------------------------
