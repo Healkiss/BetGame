@@ -1,85 +1,102 @@
 <?php
-/*
- * 
- ResumÈ de chaque classe
- Visuel de chaque table
- 
- */
+
 include("Header.php");
 include("Banniere.php");
-$view = $_GET['view'];
-$id = $_GET['id'];
-if ($view == 'userProfil'){
-	$res=$connexion->prepare("SELECT * FROM user WHERE idUSER=:id");
-	$res->execute(array(':id' => $id));
-    $res->setFetchMode(PDO::FETCH_OBJ);
-	while( $ligne = $res->fetch() ){
-	    echo 'Utilisateur : ' . $ligne->Nickname . '<br />';
-		echo 'Nom complet : ' . $ligne->Name . '</br/>';
-		echo 'Banque : ' . $ligne->Bank. '</br/>';
-		echo 'Date d\'inscription : ' . getDateFormateeFromTimeStamp($ligne->RegistrationDate);
-	}
-	$res->closeCursor();
+
+/*
+ * 
+  Resum√© de chaque classe
+  Visuel de chaque table
+ */
+
+switch ($_GET['view'])
+{
+	case 'userProfil':
+		displayUserProfile($conBdd, intval($_GET['id']));
+		break;
+	case 'contestProfil':
+		displayContestProfile($conBdd, intval($_GET['id']));
+		break;
+	case 'videogameProfil':
+		displayVideoGameProfile($conBdd, intval($_GET['id']));
+		break;
+	case 'matchProfil':
+		displayMatchProfile($conBdd, intval($_GET['id']));
+		break;
+	case 'gamerProfil':
+		displayGamerProfile($conBdd, intval($_GET['id']));
+		break;
+	default:
+		header('HTTP/1.0 404 Not Found');
+		break;
 }
 
-if ($view == 'contestProfil'){
-	$res=$connexion->prepare("SELECT * FROM contest WHERE idCONTEST=:id");
-	$res->execute(array(':id' => $id));
-    $res->setFetchMode(PDO::FETCH_OBJ);
-	while( $ligne = $res->fetch() ){
-	    echo 'Nom : ' . $ligne->Name . '<br />';
-		echo 'Prix : ' . $ligne->Price . '<br />';
-		echo 'CommencÈ le ' . getDateFormateeFromTimeStamp($ligne->Startdate) . '<br />';
-		echo 'Lieu : ' . $ligne->Location . '<br />';
-		if($ligne->Enddate != 0){
-			echo 'Finie le : ' . getDateFormateeFromTimeStamp($ligne->Enddate) . '<br />';
-		}else{
+function displayUserProfile($database, $id)
+{
+	$users = $database->pdoExecute("SELECT * FROM user WHERE idUSER=:id", array(':id' => $id));
+	foreach ($users as $user)
+	{
+		echo 'Utilisateur : ' . $user->Nickname . '<br />';
+		echo 'Nom complet : ' . $user->Name . '</br/>';
+		echo 'Banque : ' . $user->Bank . '</br/>';
+		echo 'Date d\'inscription : ' . getDateFormateeFromTimeStamp($user->RegistrationDate);
+	}
+}
+
+function displayContestProfile($database, $id)
+{
+	$contests = $database->pdoExecute("SELECT * FROM contest WHERE idCONTEST=:id", array(':id' => $id));
+	foreach ($contests as $contest)
+	{
+		echo 'Nom : ' . $contest->Name . '<br />';
+		echo 'Prix : ' . $contest->Price . '<br />';
+		echo 'Commenc√© le ' . getDateFormateeFromTimeStamp($contest->Startdate) . '<br />';
+		echo 'Lieu : ' . $contest->Location . '<br />';
+		if ($contest->Enddate != 0)
+		{
+			echo 'Finie le : ' . getDateFormateeFromTimeStamp($contest->Enddate) . '<br />';
+		}
+		else
+		{
 			echo 'En cours..<br />';
 		}
 	}
-	echo "<a href='contest.php?id=".$id."'>Voir les participants ‡ cette competition.</a>";
-	$res->closeCursor();
+	echo "<a href='contest.php?id=" . $id . "'>Voir les participants √† cette comp√©tition.</a>";
 }
 
-if ($view == 'videogameProfil'){
-	$res=$connexion->prepare("SELECT * FROM videoGame WHERE idVIDEOGAME=:id");
-	$res->execute(array(':id' => $id));
-    $res->setFetchMode(PDO::FETCH_OBJ);
-	while( $ligne = $res->fetch() ){
-	    echo 'Nom : ' . $ligne->Name . '<br />';
-		echo 'Studio : ' . $ligne->Studio . '</br/>';
-		echo 'Editeur : ' . $ligne->Editor;
+function displayVideoGameProfile($database, $id)
+{
+	$videoGames = $database->pdoExecute("SELECT * FROM videoGame WHERE idVIDEOGAME=:id", array(':id' => $id));
+	foreach ($videoGames as $videoGame)
+	{
+		echo 'Nom : ' . $videoGame->Name . '<br />';
+		echo 'Studio : ' . $videoGame->Studio . '</br/>';
+		echo 'Editeur : ' . $videoGame->Editor;
 	}
-	$res->closeCursor();
 }
 
-if ($view == 'matchProfil'){
-	$res=$connexion->prepare("SELECT * FROM match WHERE idMATCH=:id");
-	$res->execute(array(':id' => $id));
-    $res->setFetchMode(PDO::FETCH_OBJ);
-	while( $ligne = $res->fetch() ){
-	    echo 'Description : ' . $ligne->Name . '<br />';
-			$res2=$connexion->prepare("SELECT *
-							FROM match_gamer AS mg
-							INNER JOIN gamer AS g ON g.idGAMER = mg.GAMER_idGAMER
-							WHERE mg.MATCH_idMATCH=:id;
-						");
-		$res2->execute(array(':id' => $id));
-		while ($row2 = $res2->fetch()) {
-			echo "\t<a href='view.php?view=userProfil&id=".$row2['idGAMER']."'>".$row2['Name']."</a><br/>";
-		}
+function displayMatchProfile($database, $id)
+{
+	$matches = $database->pdoExecute("SELECT * FROM match WHERE idMATCH=:id", array(':id' => $id));
+	foreach ($matches as $match)
+	{
+		echo 'Description : ' . $match->Name . '<br />';
+		$sqlRequest = "
+SELECT * FROM match_gamer AS mg 
+INNER JOIN gamer AS g ON g.idGAMER = mg.GAMER_idGAMER
+WHERE mg.MATCH_idMATCH=:id";
+		$competitors = $database->pdoExecute($sqlRequest, array(':id' => $id));
+		foreach ($competitors as $competitor)
+			echo "\t<a href='view.php?view=userProfil&id=" . $competitor->idGAMER . "'>" . $competitor->Name . "</a><br/>";
 	}
-	$res->closeCursor();
 }
 
-if ($view == 'gamerProfil'){
-	$res=$connexion->prepare("SELECT * FROM gamer WHERE idGAMER=:id");
-	$res->execute(array(':id' => $id));
-    $res->setFetchMode(PDO::FETCH_OBJ);
-	while( $ligne = $res->fetch() ){
-	    	    echo 'Nom : ' . $ligne->Name . '<br />';
-	}
-	$res->closeCursor();
+function displayGamerProfile($database, $id)
+{
+	$gamers = $database->pdoExecute("SELECT * FROM gamer WHERE idGAMER=:id", array(':id' => $id));
+	foreach ($gamers as $gamer)
+		echo 'Nom : ' . $gamer->Name . '<br />';
 }
+
 include("Footer.php");
 ?>

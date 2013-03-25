@@ -1,46 +1,34 @@
 <?php
-	include("Header.php");
-	include("Banniere.php");
-echo "date -> ". getTimeStamp(getDate()) ."<br/>";
+include("Header.php");
+include("Banniere.php");
+echo "date -> " . getTimeStamp(getDate()) . "<br/>";
 ?>
 <div class="row-fluid">  
     <div class="span3">
-		dernieres competitions : <br/>
+		Dernières compétitions : <br/>
 		<?php
-			$res=$connexion->query("SELECT * FROM contest ORDER BY idCONTEST DESC LIMIT 2");
-			$res->setFetchMode(PDO::FETCH_OBJ);
-			while( $ligne = $res->fetch() )
-			{
-			        echo '<a href="view.php?view=contestProfil&id=' . $ligne->idCONTEST . '">' . $ligne->Name . '</a>, prix : ' . $ligne->Price . '<br />';
-			}
-			$res->closeCursor();
+		$contests = $conBdd->pdoExecute("SELECT * FROM contest ORDER BY idCONTEST DESC LIMIT 2");
+		foreach ($contests as $contest)
+			echo '<a href="view.php?view=contestProfil&id=' . $contest->idCONTEST . '">' . $contest->Name . '</a>, prix : ' . $contest->Price . '<br />';
 		?>
 	</div>
 	<div class="span6">
-		derniers inscrits : <br/>
+		Derniers inscrits : <br/>
 		<?php
-			$res=$connexion->query("SELECT * FROM user ORDER BY idUSER DESC LIMIT 2");
-			$res->setFetchMode(PDO::FETCH_OBJ);
-			while( $ligne = $res->fetch() )
-			{
-			        echo '<a href="view.php?view=userProfil&id=' . $ligne->idUSER . '">' . $ligne->Nickname . '</a>, banque : ' . $ligne->Bank . '<br />';
-			}
-			$res->closeCursor();
+		$users = $conBdd->pdoExecute("SELECT * FROM user ORDER BY idUSER DESC LIMIT 2");
+		foreach ($users as $user)
+			echo '<a href="view.php?view=userProfil&id=' . $user->idUSER . '">' . $user->Nickname . '</a>, banque : ' . $user->Bank . '<br />';
 		?>
 	</div>
 	<div class="span3">
-		derniers jeux : <br/>
+		Derniers jeux vidéos ajoutés : <br/>
 		<?php
-			$res=$connexion->query("SELECT * FROM videogame ORDER BY idVIDEOGAME DESC LIMIT 2");
-			$res->setFetchMode(PDO::FETCH_OBJ);
-			while( $ligne = $res->fetch() )
-			{
-			        echo '<a href="view.php?view=videogameProfil&id=' . $ligne->idVIDEOGAME . '">' . $ligne->Name . '</a><br />';
-			}
-			$res->closeCursor();
+		$games = $conBdd->pdoExecute("SELECT * FROM videogame ORDER BY idVIDEOGAME DESC LIMIT 2");
+		foreach ($games as $game)
+			echo '<a href="view.php?view=videogameProfil&id=' . $game->idVIDEOGAME . '">' . $game->Name . '</a><br />';
 		?>
 	</div>
 </div>
 <?php
-	include("Footer.php");
+include("Footer.php");
 ?>
