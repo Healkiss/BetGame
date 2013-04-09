@@ -1,0 +1,39 @@
+Ajout d'un unique sur le champ Nickname de la table user :
+ALTER TABLE  `user` ADD UNIQUE (
+	`Nickname`
+)
+ainsi que pour les tables videogame, contest, type, editor, studio, nationality ..
+ALTER TABLE  `videogame` ADD UNIQUE (
+	`Name`
+)
+ALTER TABLE  `contest` ADD UNIQUE (
+	`Name`
+)
+ALTER TABLE  `type` ADD UNIQUE (
+	`Name`
+)
+ALTER TABLE  `editor` ADD UNIQUE (
+	`Name`
+)
+ALTER TABLE  `studio` ADD UNIQUE (
+	`Name`
+)
+ALTER TABLE  `nationality` ADD UNIQUE (
+	`Locale`
+)
+
+Verifie que la date de fin est superieur a la date de debut. Declenche une erreur dans le cas contraire
+CREATE DEFINER =  `root`@`localhost` TRIGGER `startAfterEnd` BEFORE UPDATE ON `contest`
+ FOR EACH ROW IF NEW.Startdate > NEW.Enddate THEN
+UPDATE `Error: invalid_id_test` SET x=1;
+END IF
+
+
+Empecher les paris d'etre negatif. En cas d'entrée negative ce sera donc un paris avec une valuer nulle (0)
+CREATE DEFINER =  `root`@`localhost` TRIGGER `positiveBet` BEFORE INSERT ON  `bet` 
+FOR EACH
+ROW IF( NEW.Price <0 ) 
+THEN 
+SET NEW.Price =0;
+
+END IF ;
