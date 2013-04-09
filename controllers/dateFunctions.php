@@ -10,4 +10,13 @@
 	function getDateFormateeFromTimeStamp($timeStamp){
 		return date('d/m/Y H:i', $timeStamp);
 	}
+	
+	function isAdult($time)
+	{
+		$then = $time;
+		$min = strtotime('+18 years', $then);
+		if(time() < $min) 
+			return 0;
+		return 1 ;
+	}
 ?>
