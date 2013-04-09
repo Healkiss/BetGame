@@ -29,7 +29,7 @@ UPDATE `Error: invalid_id_test` SET x=1;
 END IF
 
 
-Empecher les paris d'etre negatif. En cas d'entrée negative ce sera donc un paris avec une valuer nulle (0)
+Empecher les paris d'etre negatif. En cas d'entrÃ©e negative ce sera donc un paris avec une valuer nulle (0)
 CREATE DEFINER =  `root`@`localhost` TRIGGER `positiveBet` BEFORE INSERT ON  `bet` 
 FOR EACH
 ROW IF( NEW.Price <0 ) 
@@ -41,16 +41,16 @@ END IF ;
 Etude de la normalisation :
 Table USER 
 1NF
-Aucun champ ne peut etre decoupé en sous partie, chacun est atomique. (type de base : varchar, float, text, int )
-Aucune valeur n'est repetée dans un champ
-Les champs sont constants dans le temps, les date sont toujours indiqués sous forme de timestamp. Donc de valeurs a partir du premier Janvier 1970.
+Aucun champ ne peut etre decoupÃ© en sous partie, chacun est atomique. (type de base : varchar, float, text, int )
+Aucune valeur n'est repetÃ©e dans un champ
+Les champs sont constants dans le temps, les date sont toujours indiquÃ©s sous forme de timestamp. Donc de valeurs a partir du premier Janvier 1970.
 Aucune valeurs n'est relative au temps. Elles sont calculables.
 
 2NF
-Nous avons une clé primaire (idUser) et les autres champs. Ces autres champs dependendes tous un a un de cette clé primaire.
+Nous avons une clÃ© primaire (idUser) et les autres champs. Ces autres champs dependendes tous un a un de cette clÃ© primaire.
 
 3NF
-Nous pouvons avoir un nom qui se repete pour un prenom different ou tout autre champ qui se repetera d'une autre ligne. Nous n'avons donc pas d'autres clé que l'id.
+Nous pouvons avoir un nom qui se repete pour un prenom different ou tout autre champ qui se repetera d'une autre ligne. Nous n'avons donc pas d'autres clÃ© que l'id.
 
 
 2NF
