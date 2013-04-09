@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: Mar 20, 2013 at 01:55 PM
+-- Generation Time: Apr 09, 2013 at 11:40 AM
 -- Server version: 5.5.24-log
 -- PHP Version: 5.4.3
 
@@ -35,7 +35,26 @@ CREATE TABLE IF NOT EXISTS `bet` (
   PRIMARY KEY (`idBET`),
   KEY `fk_BET_USER1_idx` (`USER_idUSER`),
   KEY `fk_BET_MATCH1_idx` (`MATCH_idMATCH`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=2 ;
+
+--
+-- Dumping data for table `bet`
+--
+
+INSERT INTO `bet` (`idBET`, `Winner`, `Price`, `USER_idUSER`, `MATCH_idMATCH`) VALUES
+(1, 1, '0', 1, 2);
+
+--
+-- Triggers `bet`
+--
+DROP TRIGGER IF EXISTS `positiveBet`;
+DELIMITER //
+CREATE TRIGGER `positiveBet` BEFORE INSERT ON `bet`
+ FOR EACH ROW IF (NEW.Price <0) THEN
+SET NEW.Price = 0;
+END IF
+//
+DELIMITER ;
 
 -- --------------------------------------------------------
 
@@ -51,7 +70,8 @@ CREATE TABLE IF NOT EXISTS `contest` (
   `Location` varchar(45) DEFAULT NULL,
   `Startdate` int(11) NOT NULL DEFAULT '0',
   `Enddate` int(11) NOT NULL DEFAULT '0',
-  PRIMARY KEY (`idCONTEST`)
+  PRIMARY KEY (`idCONTEST`),
+  UNIQUE KEY `Name` (`Name`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=4 ;
 
 --
@@ -61,7 +81,19 @@ CREATE TABLE IF NOT EXISTS `contest` (
 INSERT INTO `contest` (`idCONTEST`, `Name`, `Description`, `Price`, `Location`, `Startdate`, `Enddate`) VALUES
 (1, 'Compet1', NULL, '12000', 'Toulouse', 1311645012, 1363645012),
 (2, 'Compet2', NULL, '13000', 'Bordeaux', 1311645012, 1363645012),
-(3, 'Compet3', NULL, '30000', 'Pechabou', 1361645012, 0);
+(3, 'Compet3', NULL, '30000', 'Pechabou', 1361645012, 1361645018);
+
+--
+-- Triggers `contest`
+--
+DROP TRIGGER IF EXISTS `startAfterEnd`;
+DELIMITER //
+CREATE TRIGGER `startAfterEnd` BEFORE UPDATE ON `contest`
+ FOR EACH ROW IF NEW.Startdate > NEW.Enddate THEN
+UPDATE `Error: invalid_id_test` SET x=1;
+END IF
+//
+DELIMITER ;
 
 -- --------------------------------------------------------
 
@@ -89,13 +121,26 @@ INSERT INTO `contest_match` (`MATCH_idMATCH`, `CONTEST_idCONTEST`) VALUES
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `editor`
+--
+
+CREATE TABLE IF NOT EXISTS `editor` (
+  `idEditor` int(11) NOT NULL,
+  `Name` varchar(45) DEFAULT NULL,
+  PRIMARY KEY (`idEditor`),
+  UNIQUE KEY `Name` (`Name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `gamer`
 --
 
 CREATE TABLE IF NOT EXISTS `gamer` (
   `idGAMER` int(11) NOT NULL AUTO_INCREMENT,
   `Name` varchar(45) DEFAULT NULL,
-  `Birthdate` datetime DEFAULT NULL,
+  `Birthdate` int(11) DEFAULT NULL,
   `Description` text,
   `Nationality` int(11) DEFAULT NULL,
   PRIMARY KEY (`idGAMER`),
@@ -136,8 +181,8 @@ CREATE TABLE IF NOT EXISTS `gamer_videogame` (
 CREATE TABLE IF NOT EXISTS `match` (
   `idMATCH` int(11) NOT NULL AUTO_INCREMENT,
   `Description` text,
-  `Startdate` datetime DEFAULT NULL,
-  `Enddate` datetime DEFAULT NULL,
+  `Startdate` int(11) DEFAULT NULL,
+  `Enddate` int(11) DEFAULT NULL,
   PRIMARY KEY (`idMATCH`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=8 ;
 
@@ -207,7 +252,8 @@ CREATE TABLE IF NOT EXISTS `match_score` (
 CREATE TABLE IF NOT EXISTS `nationality` (
   `idNATIONALITY` int(11) NOT NULL AUTO_INCREMENT,
   `Locale` varchar(45) DEFAULT NULL,
-  PRIMARY KEY (`idNATIONALITY`)
+  PRIMARY KEY (`idNATIONALITY`),
+  UNIQUE KEY `Locale` (`Locale`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
 
 -- --------------------------------------------------------
@@ -225,6 +271,19 @@ CREATE TABLE IF NOT EXISTS `score` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `studio`
+--
+
+CREATE TABLE IF NOT EXISTS `studio` (
+  `idStudio` int(11) NOT NULL,
+  `Name` varchar(45) DEFAULT NULL,
+  PRIMARY KEY (`idStudio`),
+  UNIQUE KEY `Name` (`Name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `type`
 --
 
@@ -232,7 +291,8 @@ CREATE TABLE IF NOT EXISTS `type` (
   `idTYPE` int(11) NOT NULL AUTO_INCREMENT,
   `Name` varchar(45) DEFAULT NULL,
   `Description` text,
-  PRIMARY KEY (`idTYPE`)
+  PRIMARY KEY (`idTYPE`),
+  UNIQUE KEY `Name` (`Name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
 
 -- --------------------------------------------------------
@@ -251,7 +311,8 @@ CREATE TABLE IF NOT EXISTS `user` (
   `Bank` float DEFAULT NULL,
   `RegistrationDate` int(11) NOT NULL,
   PRIMARY KEY (`idUSER`),
-  UNIQUE KEY `idUSER_UNIQUE` (`idUSER`)
+  UNIQUE KEY `idUSER_UNIQUE` (`idUSER`),
+  UNIQUE KEY `Nickname` (`Nickname`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=4 ;
 
 --
@@ -276,7 +337,8 @@ CREATE TABLE IF NOT EXISTS `videogame` (
   `Year` int(11) DEFAULT NULL,
   `Studio` varchar(45) DEFAULT NULL,
   `Editor` varchar(45) DEFAULT NULL,
-  PRIMARY KEY (`idVIDEOGAME`)
+  PRIMARY KEY (`idVIDEOGAME`),
+  UNIQUE KEY `Name` (`Name`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=5 ;
 
 --
@@ -311,15 +373,15 @@ CREATE TABLE IF NOT EXISTS `videogame_type` (
 -- Constraints for table `bet`
 --
 ALTER TABLE `bet`
-  ADD CONSTRAINT `fk_BET_USER1` FOREIGN KEY (`USER_idUSER`) REFERENCES `user` (`idUSER`) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  ADD CONSTRAINT `fk_BET_MATCH1` FOREIGN KEY (`MATCH_idMATCH`) REFERENCES `match` (`idMATCH`) ON DELETE NO ACTION ON UPDATE NO ACTION;
+  ADD CONSTRAINT `fk_BET_MATCH1` FOREIGN KEY (`MATCH_idMATCH`) REFERENCES `match` (`idMATCH`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  ADD CONSTRAINT `fk_BET_USER1` FOREIGN KEY (`USER_idUSER`) REFERENCES `user` (`idUSER`) ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 --
 -- Constraints for table `contest_match`
 --
 ALTER TABLE `contest_match`
-  ADD CONSTRAINT `fk_MATCH_has_CONTEST_MATCH1` FOREIGN KEY (`MATCH_idMATCH`) REFERENCES `match` (`idMATCH`) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  ADD CONSTRAINT `fk_MATCH_has_CONTEST_CONTEST1` FOREIGN KEY (`CONTEST_idCONTEST`) REFERENCES `contest` (`idCONTEST`) ON DELETE NO ACTION ON UPDATE NO ACTION;
+  ADD CONSTRAINT `fk_MATCH_has_CONTEST_CONTEST1` FOREIGN KEY (`CONTEST_idCONTEST`) REFERENCES `contest` (`idCONTEST`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  ADD CONSTRAINT `fk_MATCH_has_CONTEST_MATCH1` FOREIGN KEY (`MATCH_idMATCH`) REFERENCES `match` (`idMATCH`) ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 --
 -- Constraints for table `gamer`
@@ -345,8 +407,8 @@ ALTER TABLE `match_gamer`
 -- Constraints for table `match_score`
 --
 ALTER TABLE `match_score`
-  ADD CONSTRAINT `fk_SCORE_has_MATCH_SCORE1` FOREIGN KEY (`SCORE_idScore`) REFERENCES `score` (`idScore`) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  ADD CONSTRAINT `fk_SCORE_has_MATCH_MATCH1` FOREIGN KEY (`MATCH_idMATCH`) REFERENCES `match` (`idMATCH`) ON DELETE NO ACTION ON UPDATE NO ACTION;
+  ADD CONSTRAINT `fk_SCORE_has_MATCH_MATCH1` FOREIGN KEY (`MATCH_idMATCH`) REFERENCES `match` (`idMATCH`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  ADD CONSTRAINT `fk_SCORE_has_MATCH_SCORE1` FOREIGN KEY (`SCORE_idScore`) REFERENCES `score` (`idScore`) ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 --
 -- Constraints for table `videogame_type`
