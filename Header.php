@@ -1,6 +1,6 @@
 <?php
 session_start();
-include("conBdd.php");
+include("controllers/conBdd.php");
 include("controllers/dateFunctions.php");
 global $conBdd, $connexion;
 $conBdd = new conBDD();
