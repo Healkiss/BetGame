@@ -124,10 +124,12 @@ CREATE TABLE IF NOT EXISTS `videogame` (
   `Name` varchar(45) DEFAULT NULL,
   `Description` text,
   `Year` int(11) DEFAULT NULL,
-  `Studio` varchar(45) DEFAULT NULL,
-  `Editor` varchar(45) DEFAULT NULL,
-  PRIMARY KEY (`idVIDEOGAME`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+  `idStudio` int(11) DEFAULT NULL,
+  `idEditor` int(11) DEFAULT NULL,
+  PRIMARY KEY (`idVIDEOGAME`),
+  KEY `idStudio` (`idStudio`),
+  KEY `idEditor` (`idEditor`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
 
 CREATE TABLE IF NOT EXISTS `videogame_type` (
   `TYPE_idTYPE` int(11) NOT NULL,
@@ -159,6 +161,10 @@ ALTER TABLE `match_gamer`
 ALTER TABLE `match_score`
   ADD CONSTRAINT `fk_SCORE_has_MATCH_MATCH1` FOREIGN KEY (`MATCH_idMATCH`) REFERENCES `match` (`idMATCH`) ON DELETE NO ACTION ON UPDATE NO ACTION,
   ADD CONSTRAINT `fk_SCORE_has_MATCH_SCORE1` FOREIGN KEY (`SCORE_idScore`) REFERENCES `score` (`idScore`) ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+ALTER TABLE `videogame`
+  ADD CONSTRAINT `videogame_ibfk_2` FOREIGN KEY (`idEditor`) REFERENCES `editor` (`idEditor`),
+  ADD CONSTRAINT `videogame_ibfk_1` FOREIGN KEY (`idStudio`) REFERENCES `studio` (`idStudio`);
 
 ALTER TABLE `videogame_type`
   ADD CONSTRAINT `fk_TYPE_has_VIDEOGAME_TYPE1` FOREIGN KEY (`TYPE_idTYPE`) REFERENCES `type` (`idTYPE`) ON DELETE NO ACTION ON UPDATE NO ACTION,
