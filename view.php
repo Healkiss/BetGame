@@ -11,19 +11,19 @@ include("Banniere.php");
 
 switch ($_GET['view'])
 {
-	case 'userProfil':
+	case 'userProfile':
 		displayUserProfile($conBdd, intval($_GET['id']));
 		break;
-	case 'contestProfil':
+	case 'contestProfile':
 		displayContestProfile($conBdd, intval($_GET['id']));
 		break;
-	case 'videogameProfil':
+	case 'videogameProfile':
 		displayVideoGameProfile($conBdd, intval($_GET['id']));
 		break;
-	case 'matchProfil':
+	case 'matchProfile':
 		displayMatchProfile($conBdd, intval($_GET['id']));
 		break;
-	case 'gamerProfil':
+	case 'gamerProfile':
 		displayGamerProfile($conBdd, intval($_GET['id']));
 		break;
 	default:
