@@ -42,9 +42,9 @@ Etude de la normalisation :
 Table USER 
 1NF
 Aucun champ ne peut etre decoupé en sous partie, chacun est atomique. (type de base : varchar, float, text, int )
-Aucune valeur n'est repetée dans un champ
-Les champs sont constants dans le temps, les date sont toujours indiqués sous forme de timestamp. Donc de valeurs a partir du premier Janvier 1970.
-Aucune valeurs n'est relative au temps. Elles sont calculables.
+Aucune valeur n'est repetée dans un champ.
+Les champs sont constants dans le temps, les dates sont indiqués sous forme de timestamp. Donc une valeur ficée à partir du premier Janvier 1970.
+Les valeurs ne sont pas relative au temps. Elles sont calculables. (par exemple on code l'anniversaire et pas l'age)
 
 2NF
 Nous avons une clé primaire (idUser) et les autres champs. Ces autres champs dependendes tous un a un de cette clé primaire.
