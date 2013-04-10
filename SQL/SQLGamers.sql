@@ -1,4 +1,4 @@
-INSERT INTO `gamer` (`idGAMER`, `Name`, `Birthdate`, `Description`, `Country`) VALUES
+INSERT INTO `gamer` (`idGAMER`, `Name`, `Birthdate`, `Description`, `idCOUNTRY`) VALUES
 (1, 'Jack', '1991-03-22', NULL, 75),
 (2, 'Healkiss', '1989-01-30', NULL, 75),
 (3, 'Eolhing', '1992-09-17', NULL, 75),
