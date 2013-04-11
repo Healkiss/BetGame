@@ -25,15 +25,13 @@ CREATE TABLE IF NOT EXISTS `contest` (
 
 CREATE TABLE IF NOT EXISTS `country` (
   `idCOUNTRY` smallint(5) unsigned NOT NULL AUTO_INCREMENT,
-  `code` int(3) NOT NULL,
   `alpha2` varchar(2) NOT NULL,
   `alpha3` varchar(3) NOT NULL,
   `nameUS` varchar(45) NOT NULL,
   `nameFR` varchar(45) NOT NULL,
   PRIMARY KEY (`idCOUNTRY`),
   UNIQUE KEY `alpha2` (`alpha2`),
-  UNIQUE KEY `alpha3` (`alpha3`),
-  UNIQUE KEY `code_unique` (`code`)
+  UNIQUE KEY `alpha3` (`alpha3`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
 
 CREATE TABLE IF NOT EXISTS `editor` (
@@ -157,8 +155,8 @@ ALTER TABLE `match`
   ADD CONSTRAINT `match_ibfk_2` FOREIGN KEY (`idCONTEST`) REFERENCES `contest` (`idCONTEST`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 ALTER TABLE `match_gamer`
-  ADD CONSTRAINT `match_gamer_ibfk_1` FOREIGN KEY (`GAMER_idGAMER`) REFERENCES `gamer` (`idGAMER`) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  ADD CONSTRAINT `fk_GAMER_has_MATCH_MATCH1` FOREIGN KEY (`MATCH_idMATCH`) REFERENCES `match` (`idMATCH`) ON DELETE NO ACTION ON UPDATE NO ACTION;
+  ADD CONSTRAINT `match_gamer_ibfk_3` FOREIGN KEY (`MATCH_idMATCH`) REFERENCES `match` (`idMATCH`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `match_gamer_ibfk_2` FOREIGN KEY (`GAMER_idGAMER`) REFERENCES `gamer` (`idGAMER`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 ALTER TABLE `match_score`
   ADD CONSTRAINT `match_score_ibfk_1` FOREIGN KEY (`SCORE_idSCORE`) REFERENCES `score` (`idScore`),

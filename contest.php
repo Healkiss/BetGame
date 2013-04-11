@@ -50,11 +50,22 @@ if($contests){
 				<?php										if ($competitors)					{
 					foreach ($competitors as $competitor)
 					{
-						if ($oldSide != $competitor->Side)
-							if (!$first)
+						if ($oldSide != $competitor->Side){
+							if (!$first){
 								echo "vs</br>";
-						$oldSide = $competitor->Side;
-						$first = false;
+							}
+							$sqlRequest = "SELECT *
+							FROM match_score AS ms
+							INNER JOIN `match` AS m ON m.idMATCH = ms.MATCH_idMATCH
+							INNER JOIN `score` AS s ON s.idSCORE = ms.SCORE_idSCORE
+							WHERE ms.MATCH_idMATCH=:idMatch
+							AND ms.Side = :Side";
+							$score = $conBdd->pdoExecute($sqlRequest, array(':idMatch' => $match->idMATCH, ':Side' => $competitor->Side));
+							
+							echo $competitor->Side.", score : ". print_r($score)."<br/>";
+							$oldSide = $competitor->Side;
+							$first = false;
+						}
 						?>
 						<a href="view.php?view=gamerProfil&id=<?php echo $competitor->idGAMER ?>"><?php echo $competitor->Name ?></a>
 						<br/>

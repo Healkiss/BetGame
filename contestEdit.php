@@ -2,7 +2,51 @@
 include("Header.php");
 include("Banniere.php");
 
+print_r($_POST);
+echo "<br/>";
 $id = intval($_GET['id']);
+
+if ($_POST){
+	$nomMatch = $_POST['nomMatch']!=""?$_POST['nomMatch']:"Match sans nom";
+	$nbTeam = $_POST['nbTeam'];
+	$nbTeammate = $_POST['nbTeammate'];
+	
+	if ($nbTeam > 0)
+	{
+		try {
+			$success = $conBdd->pdoExecute("INSERT INTO `hackjackbet`.`match` (Description, StartDate, idContest) VALUES(
+			:description, NOW(), :idContest)",array(
+				':description'=>$nomMatch,
+				':idContest'=>$id,
+			));
+			echo $lastinsertid = $conBdd->connexion->lastinsertid();
+			$c = 0;
+			for ($i = 1; $i <= $nbTeam; $i++)
+			{
+				for ($j = 1 ; $j <= $nbTeammate; $j++)
+				{
+					$success = $conBdd->pdoExecute("INSERT INTO `hackjackbet`.`match_gamer` VALUES(
+					:idGamer, :idMatch, :side)",array(
+						':idGamer'=>$_POST['teammate'][$c],
+						':idMatch'=>$lastinsertid,
+						':side'=>"team$i",
+					));
+					$c++;
+				}
+			}
+
+			
+			 
+			echo "Enregistrement réussi";
+		} catch( Exception $e ){
+		  echo 'Erreur de requète : ', $e->getMessage();
+		}
+	}else{
+		echo "Vous n'avez defini aucune equipe";
+	}
+	echo "<br/>";
+}
+
 
 $contests = $conBdd->pdoExecute("SELECT * FROM contest WHERE idCONTEST=:id", array(':id' => $id));
 
@@ -15,8 +59,7 @@ $matches = $conBdd->pdoExecute($sqlRequest, array(':id' => $id));
 if($contests)
 {
 	foreach ($contests as $contest)
-	{
-		?>
+	{?>
 		Nom : <?php echo $contest->Name ?><br/>
 		Prix : <?php echo $contest->Price ?><br/>
 		Commencé le <?php echo getDateFormateeFromTimeStamp($contest->Startdate) ?><br/>
@@ -57,8 +100,23 @@ if($contests)
 					foreach ($competitors as $competitor)
 					{
 						if ($oldSide != $competitor->Side)
+						{
 							if (!$first)
+							{
 								echo "vs</br>";
+							}
+							$sqlRequest = "SELECT *
+							FROM match_score AS ms
+							INNER JOIN `match` AS m ON m.idMATCH = ms.MATCH_idMATCH
+							INNER JOIN `score` AS s ON s.idSCORE = ms.SCORE_idSCORE
+							WHERE ms.MATCH_idMATCH=:idMatch
+							AND ms.Side = :Side";
+							$score = $conBdd->pdoExecute($sqlRequest, array(':idMatch' => $match->idMATCH, ':Side' => $competitor->Side));
+							echo $competitor->Side.", score : " . print_r($score);
+							echo "<form action='contestEdit.php?id=$id' method='post'>";
+							echo "<input type='text' name='score' />";
+							echo "<input type='submit' value='Valider ce resultat'><br/>";
+						}
 						$oldSide = $competitor->Side;
 						$first = false;
 						?>
@@ -73,6 +131,13 @@ if($contests)
 		<?php
 		}
 	}
+	$gamers = $conBdd->pdoExecute("SELECT idGAMER, Name FROM gamer ORDER BY Name ASC");
+	echo "<div id=gamersModele style='display:none'><select type='text' name='teammate[]'>";
+	foreach($gamers as $gamer)
+	{
+		echo "<option value='$gamer->idGAMER'>$gamer->Name</option>";
+	}
+	echo "</select></div>";
 	?>
 	<script type="text/javascript">
 	<!--
@@ -82,16 +147,17 @@ if($contests)
 	
 	function newTeam(){
 		team = team + 1;
-		contenu = contenu + "Team "+ team +" : ";
-		document.getElementById('new_team').innerHTML = contenu;
+		contenu = contenu + "<p>Team "+ team +" : ";
+		document.getElementById('teams').innerHTML = contenu;
 		for(t = 1 ; t <= teammate; t++){
-			contenu =  contenu + "<label for='teammate" + t + "'>Equipier "+ t +" <input type='text' name='teammate" + t + "' /><br />";
-			document.getElementById('new_team').innerHTML = contenu;
+			contenu =  contenu + "<label for='teammate" + t + "'>Equipier "+ t + "</label>" +document.getElementById('gamersModele').innerHTML + "</p>";
+			document.getElementById('teams').innerHTML = contenu;
 		}
 		document.getElementById('nbteammate').innerHTML = "";
+		document.getElementById('nbTeam').innerHTML = "<input type='hidden' name='nbTeam' value='" + team + "'>";
 	}
 	function majNbTeammate(){
-		document.getElementById('nbCoequipier').innerHTML = " " + teammate +" ";
+		document.getElementById('nbTeammate').innerHTML = teammate +"<input type='hidden' name='nbTeammate' value='" + teammate + "'>";
 	}
 	function addTeammate(){
 		teammate = teammate + 1;
@@ -105,14 +171,15 @@ if($contests)
 	</script>
 
 	Ajouter un match :
-	<form action="contestEdit.php" method="post">
+	<?php echo "<form action='contestEdit.php?id=$id' method='post'>"; ?>
 		<p>Nom du match : <input type="text" name="nomMatch" /></p>
-		<p>Nombre de coequipiers par equipe : <span id="nbCoequipier">1 </span></p>
-		<div id="new_team"></div>
+		<p>Nombre de coequipiers par equipe : <span id="nbTeammate">1<input type="hidden" name="nbTeammate" value="1"> </p>
+		<span id="nbTeam"><input type="hidden" name="nbTeam" value="0"> </span>
+		<p id="teams"><p>
 		<input type="button" onclick="newTeam()" value="Ajouter une equipe"/>
 		<span id="nbteammate"><input type="button" onclick="addTeammate()" value="Augmenter le nombre de coequipiers"/>
 		<input type="button" onclick="removeTeammate()" value="Reduire le nombre de coequipiers"/></span>
-		<p><input type="submit" value="OK"></p>
+		<p><input type="submit" value="Valider ce match"></p>
 	</form>
 	<?php
 }
