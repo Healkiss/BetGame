@@ -39,7 +39,7 @@ ORDER BY Name ASC
 		$gamersDisplayed[] = $gamer->idGAMER;
 		?>
 		<h3><?php echo $gamer->Name ?></h3>
-		Date de naissance : <?php echo date('d/m/y', strtotime($gamer->Birthdate)) ?><br/>
+		Date de naissance : <?php echo date('d/m/Y', strtotime($gamer->Birthdate)) ?><br/>
 		Description : <?php echo $gamer->Description ?><br/>
 		Pays : <?php echo $gamer->countryName ?><br/>
 		Jeux vidéos :<br/>
@@ -69,10 +69,14 @@ ORDER BY Name ASC
 		</tbody>
 		<?php
 	}
-	?>
+	if (!empty($gamersDisplayed))
+	{
+		?>
+	</table>
+	<?php
+}
+?>
 </div>
 <?php
-ob_start();
 include("Footer.php");
-ob_end_flush();
 ?>

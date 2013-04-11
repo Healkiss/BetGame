@@ -1,13 +1,12 @@
 <?php
 include("Header.php");
 include("Banniere.php");
-echo "date -> " . getTimeStamp(getDate()) . "<br/>";
 ?>
 <div class="row-fluid">  
 	<div class="span3">
 		Compétitions en cours : <br/>
 		<?php
-		$onGoingContests = $conBdd->pdoExecute("SELECT * FROM contest WHERE Startdate < UNIX_TIMESTAMP() AND Enddate = 0");
+		$onGoingContests = $conBdd->pdoExecute("SELECT * FROM contest WHERE Startdate < NOW() AND Enddate = 0");
 		if (count($onGoingContests) == 0)
 			echo "Il n'y a pas de compétition en cours";
 		else
@@ -15,10 +14,10 @@ echo "date -> " . getTimeStamp(getDate()) . "<br/>";
 				echo '<a href="view.php?view=contestProfile&id=' . $contest->idCONTEST . '">' . $contest->Name . '</a>, prix : ' . $contest->Price . '<br />';
 		?>
 	</div>
-	<div class="span6">
+	<div class="span3">
 		Prochaines compétitions : <br/>
 		<?php
-		$futureContests = $conBdd->pdoExecute("SELECT * FROM contest WHERE Startdate > UNIX_TIMESTAMP() ORDER BY Startdate ASC LIMIT 2");
+		$futureContests = $conBdd->pdoExecute("SELECT * FROM contest WHERE Startdate > NOW() ORDER BY Startdate ASC LIMIT 2");
 		if (count($futureContests) == 0)
 			echo "Il n'y a pas de compétition prevues";
 		else
@@ -29,12 +28,65 @@ echo "date -> " . getTimeStamp(getDate()) . "<br/>";
 	<div class="span3">
 		Compétitions récemment terminées : <br/>
 		<?php
-		$lastFinishedContests = $conBdd->pdoExecute("SELECT * FROM contest WHERE Enddate < UNIX_TIMESTAMP() ORDER BY Enddate DESC LIMIT 2");
+		$lastFinishedContests = $conBdd->pdoExecute("SELECT * FROM contest WHERE Enddate < NOW() ORDER BY Enddate DESC LIMIT 2");
 		if (count($lastFinishedContests) == 0)
 			echo "Aucune";
 		else
 			foreach ($lastFinishedContests as $contest)
 				echo '<a href="view.php?view=contestProfile&id=' . $contest->idCONTEST . '">' . $contest->Name . '</a>, prix : ' . $contest->Price . '<br />';
+		?>
+	</div>
+</div>
+<br/>
+<hr/>
+<br/>
+<div class="row-fluid">  
+	<div class="span3">
+		Matchs en cours : <br/>
+		<?php
+		$onGoingMatches = $conBdd->pdoExecute("
+SELECT m.* , contest.Name contestName
+FROM `match`  m
+LEFT JOIN contest USING(idCONTEST) 
+WHERE m.Startdate < NOW() AND m.Enddate > NOW()
+ORDER BY m.Startdate DESC");
+		if (count($onGoingMatches) == 0)
+			echo "Il n'y a pas de match qui se déroule en ce moment.";
+		else
+			foreach ($onGoingMatches as $match)
+				echo '<a href="view.php?view=matchProfile&id=' . $match->idMATCH . '">' . $match->contestName . ' - ' . $match->Description . '</a><br />';
+		?>
+	</div>
+	<div class="span3">
+		Prochains matchs : <br/>
+		<?php
+		$futureMatches = $conBdd->pdoExecute("
+SELECT m.* , contest.Name contestName
+FROM `match` m
+LEFT JOIN contest USING(idCONTEST) 
+WHERE m.Startdate > NOW()
+ORDER BY m.Startdate ASC");
+		if (count($futureMatches) == 0)
+			echo "Il n'y a aucun match de planifié.";
+		else
+			foreach ($futureMatches as $match)
+				echo '<a href="view.php?view=matchProfile&id=' . $match->idMATCH . '">' . $match->contestName . ' - ' . $match->Description . '</a><br />';
+		?>
+	</div>
+	<div class="span3">
+		Matchs récemment terminés : <br/>
+		<?php
+		$lastFinishedMatches = $conBdd->pdoExecute("
+SELECT m.* , contest.Name contestName
+FROM `match` m 
+LEFT JOIN contest USING(idCONTEST) 
+WHERE m.Enddate < NOW()
+ORDER BY m.Enddate DESC");
+		if (count($lastFinishedMatches) == 0)
+			echo "Aucun.";
+		else
+			foreach ($lastFinishedMatches as $match)
+				echo '<a href="view.php?view=matchProfile&id=' . $match->idMATCH . '">' . $match->contestName . ' - ' . $match->Description . '</a><br />';
 		?>
 	</div>
 </div>

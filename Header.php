@@ -13,3 +13,5 @@ $connexion = $conBdd->connexion;
 		<link rel="stylesheet" type="text/css" href="style/css/css.css" />
 	</head>
 	<body>
+
+		<div class="container-fluid">
