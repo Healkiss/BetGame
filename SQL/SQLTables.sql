@@ -178,20 +178,116 @@ ALTER TABLE `videogame_type`
 -- Ne marche pas sur l'hébergement en ligne mais fonctionne de manière générale
 
 
--- DROP TRIGGER IF EXISTS `positiveBet`;
--- DELIMITER //
--- CREATE TRIGGER `positiveBet` BEFORE INSERT ON `bet`
---  FOR EACH ROW IF (NEW.Price <0) THEN
--- SET NEW.Price = 0;
--- END IF
--- //
--- DELIMITER ;
--- 
--- DROP TRIGGER IF EXISTS `startAfterEnd`;
--- DELIMITER //
--- CREATE TRIGGER `startAfterEnd` BEFORE UPDATE ON `contest`
---  FOR EACH ROW IF NEW.Startdate > NEW.Enddate THEN
--- UPDATE `Error: invalid_id_test` SET x=1;
--- END IF
--- //
--- DELIMITER ;
+DROP TRIGGER IF EXISTS `betInsertTrigger`;
+DELIMITER //
+CREATE TRIGGER `betInsertTrigger`
+BEFORE INSERT
+ON `bet`
+FOR EACH ROW
+BEGIN
+	IF (NEW.Price <0) THEN
+		SET NEW.Price = 0;
+	END IF;
+END//
+DELIMITER ;
+
+DROP TRIGGER IF EXISTS `betUpdateTrigger`;
+DELIMITER //
+CREATE TRIGGER `betUpdateTrigger`
+BEFORE UPDATE
+ON `bet`
+FOR EACH ROW
+BEGIN
+	IF (NEW.Price <0) THEN
+		SET NEW.Price = 0;
+	END IF;
+END//
+DELIMITER ;
+ 
+DROP TRIGGER IF EXISTS `contestInsertTrigger`;
+DELIMITER //
+CREATE TRIGGER `contestInsertTrigger`
+BEFORE INSERT
+ON `contest`
+FOR EACH ROW
+BEGIN
+	DECLARE dateError CONDITION FOR SQLSTATE '45000';
+
+	IF NEW.Startdate > NEW.Enddate THEN
+		SIGNAL dateError
+			SET MESSAGE_TEXT = 'La date de debut est postérieure a la date fin' , MYSQL_ERRNO = 1002;
+	END IF;
+END//
+DELIMITER ; 
+
+DROP TRIGGER IF EXISTS `contestUpdateTrigger`;
+DELIMITER //
+CREATE TRIGGER `contestUpdateTrigger`
+BEFORE UPDATE
+ON `contest`
+FOR EACH ROW
+BEGIN
+	DECLARE dateError CONDITION FOR SQLSTATE '45000';
+
+	IF NEW.Startdate > NEW.Enddate THEN
+		SIGNAL dateError
+			SET MESSAGE_TEXT = 'La date de debut est postérieure a la date fin' , MYSQL_ERRNO = 1002;
+	END IF;
+END//
+DELIMITER ;
+
+DROP TRIGGER IF EXISTS `matchInsertTrigger`;
+DELIMITER //
+CREATE TRIGGER `matchInsertTrigger`
+BEFORE INSERT
+ON `match`
+FOR EACH ROW
+BEGIN
+	DECLARE dateError CONDITION FOR SQLSTATE '45000';
+
+	IF NEW.Startdate > NEW.Enddate THEN
+		SIGNAL dateError
+			SET MESSAGE_TEXT = 'La date de debut est postérieure a la fin du match' , MYSQL_ERRNO = 1002;
+	ELSE
+		SET @contestStartdate := (SELECT Startdate FROM `contest` WHERE idCONTEST = NEW.idCONTEST);
+		IF NEW.Startdate < @contestStartdate THEN
+			SIGNAL dateError
+				SET MESSAGE_TEXT = 'La date de début du match est anterieure au commencement de la competition' , MYSQL_ERRNO = 1002;
+		ELSE
+			SET @contestEnddate := (SELECT Enddate FROM `contest` WHERE idCONTEST = NEW.idCONTEST);
+			IF NEW.Enddate > @contestEnddate THEN
+				SIGNAL dateError
+					SET MESSAGE_TEXT = 'La date de fin du match est postérieur a la fin de la competition' , MYSQL_ERRNO = 1002;
+			END IF;
+		END IF;
+	END IF;
+END//
+DELIMITER ;
+
+DROP TRIGGER IF EXISTS `matchUpdateTrigger`;
+DELIMITER //
+CREATE TRIGGER `matchUpdateTrigger`
+BEFORE UPDATE
+ON `match`
+FOR EACH ROW
+BEGIN
+	DECLARE dateError CONDITION FOR SQLSTATE '45000';
+
+	IF NEW.Startdate > NEW.Enddate THEN
+		SIGNAL dateError
+			SET MESSAGE_TEXT = 'La date de debut est postérieure a la fin du match' , MYSQL_ERRNO = 1002;
+	ELSE
+		SET @contestStartdate := (SELECT Startdate FROM `contest` WHERE idCONTEST = NEW.idCONTEST);
+		IF NEW.Startdate < @contestStartdate THEN
+			SIGNAL dateError
+				SET MESSAGE_TEXT = 'La date de début du match est anterieure au commencement de la competition' , MYSQL_ERRNO = 1002;
+		ELSE
+			SET @contestEnddate := (SELECT Enddate FROM `contest` WHERE idCONTEST = NEW.idCONTEST);
+			IF NEW.Enddate > @contestEnddate THEN
+				SIGNAL dateError
+					SET MESSAGE_TEXT = 'La date de fin du match est postérieur a la fin de la competition' , MYSQL_ERRNO = 1002;
+			END IF;
+		END IF;
+	END IF;
+END//
+DELIMITER ;
