@@ -66,13 +66,25 @@ function displayContestProfile($database, $id)
 
 function displayVideoGameProfile($database, $id)
 {
-	$videoGames = $database->pdoExecute("SELECT * FROM videoGame WHERE idVIDEOGAME=:id", array(':id' => $id));
+	$sqlRequest = "
+SELECT videogame.* , editor.Name editorName , studio.Name studioName , type.Name typeName , type.idTYPE
+FROM videogame
+LEFT JOIN `editor` USING(idEditor)
+LEFT JOIN `studio` USING(idStudio)
+LEFT JOIN `videogame_type` vt ON idVIDEOGAME = vt.VIDEOGAME_idVIDEOGAME
+LEFT JOIN `type` ON idTYPE = TYPE_idTYPE
+WHERE idVIDEOGAME=:id";
+	$videoGames = $database->pdoExecute($sqlRequest, array(':id' => $id));
+	echo 'Nom : ' . $videoGames[0]->Name . '<br />';
+	echo 'Année de sortie : ' . $videoGames[0]->Year . '<br />';
+	echo 'Studio : ' . $videoGames[0]->studioName . '</br/>';
+	echo 'Éditeur : ' . $videoGames[0]->editorName . '</br/>';
+	echo 'Type de jeu :';
 	foreach ($videoGames as $videoGame)
-	{
-		echo 'Nom : ' . $videoGame->Name . '<br />';
-		echo 'Studio : ' . $videoGame->Studio . '</br/>';
-		echo 'Editeur : ' . $videoGame->Editor;
-	}
+		echo ' <a href="view.php?view=gameType&id="' . $videoGame->idTYPE . '>' . $videoGame->typeName . '</a>';
+	echo '<br/>
+		Description : <br/>
+<p>' . $videoGames[0]->Description . '</p>';
 }
 
 function displayMatchProfile($database, $id)
@@ -87,7 +99,7 @@ INNER JOIN gamer AS g ON g.idGAMER = mg.GAMER_idGAMER
 WHERE mg.MATCH_idMATCH=:id";
 		$competitors = $database->pdoExecute($sqlRequest, array(':id' => $id));
 		foreach ($competitors as $competitor)
-			echo "\t<a href='view.php?view=userProfil&id=" . $competitor->idGAMER . "'>" . $competitor->Name . "</a><br/>";
+			echo "\t<a href='view.php?view=userProfile&id=" . $competitor->idGAMER . "'>" . $competitor->Name . "</a><br/>";
 	}
 }
 
