@@ -3,14 +3,14 @@ SET time_zone = "+00:00";
 
 CREATE TABLE IF NOT EXISTS `bet` (
   `idBET` int(11) NOT NULL AUTO_INCREMENT,
-  `Winner` int(11) DEFAULT NULL,
+  `Winner` varchar(45) DEFAULT NULL,
   `Price` varchar(45) DEFAULT NULL,
   `USER_idUSER` int(11) NOT NULL,
   `MATCH_idMATCH` int(11) NOT NULL,
   PRIMARY KEY (`idBET`),
   KEY `fk_BET_USER1_idx` (`USER_idUSER`),
   KEY `fk_BET_MATCH1_idx` (`MATCH_idMATCH`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
 
 CREATE TABLE IF NOT EXISTS `contest` (
   `idCONTEST` int(11) NOT NULL AUTO_INCREMENT,
@@ -62,7 +62,7 @@ CREATE TABLE IF NOT EXISTS `match` (
   `idMATCH` int(11) NOT NULL AUTO_INCREMENT,
   `Description` text,
   `Startdate` datetime DEFAULT NULL,
-  `Enddate` datetime DEFAULT NULL,
+  `Enddate` datetime NOT NULL,
   `idCONTEST` int(11) NOT NULL,
   PRIMARY KEY (`idMATCH`),
   KEY `idCONTEST` (`idCONTEST`)
@@ -213,7 +213,7 @@ FOR EACH ROW
 BEGIN
 	DECLARE dateError CONDITION FOR SQLSTATE '45000';
 
-	IF NEW.Startdate > NEW.Enddate THEN
+	IF NEW.Enddate != 0 AND NEW.Startdate > NEW.Enddate THEN
 		SIGNAL dateError
 			SET MESSAGE_TEXT = 'La date de debut est postérieure a la date fin' , MYSQL_ERRNO = 1002;
 	END IF;
@@ -229,7 +229,7 @@ FOR EACH ROW
 BEGIN
 	DECLARE dateError CONDITION FOR SQLSTATE '45000';
 
-	IF NEW.Startdate > NEW.Enddate THEN
+	IF NEW.Enddate != 0 AND NEW.Startdate > NEW.Enddate THEN
 		SIGNAL dateError
 			SET MESSAGE_TEXT = 'La date de debut est postérieure a la date fin' , MYSQL_ERRNO = 1002;
 	END IF;
@@ -245,7 +245,7 @@ FOR EACH ROW
 BEGIN
 	DECLARE dateError CONDITION FOR SQLSTATE '45000';
 
-	IF NEW.Startdate > NEW.Enddate THEN
+	IF NEW.Enddate != 0 AND NEW.Startdate > NEW.Enddate THEN
 		SIGNAL dateError
 			SET MESSAGE_TEXT = 'La date de debut est postérieure a la fin du match' , MYSQL_ERRNO = 1002;
 	ELSE
@@ -255,9 +255,9 @@ BEGIN
 				SET MESSAGE_TEXT = 'La date de début du match est anterieure au commencement de la competition' , MYSQL_ERRNO = 1002;
 		ELSE
 			SET @contestEnddate := (SELECT Enddate FROM `contest` WHERE idCONTEST = NEW.idCONTEST);
-			IF NEW.Enddate > @contestEnddate THEN
+			IF @contestEnddate != 0 AND NEW.Enddate > @contestEnddate THEN
 				SIGNAL dateError
-					SET MESSAGE_TEXT = 'La date de fin du match est postérieur a la fin de la competition' , MYSQL_ERRNO = 1002;
+					SET MESSAGE_TEXT = 'La date de fin du match est posterieure a la fin de la competition' , MYSQL_ERRNO = 1002;
 			END IF;
 		END IF;
 	END IF;
@@ -273,7 +273,7 @@ FOR EACH ROW
 BEGIN
 	DECLARE dateError CONDITION FOR SQLSTATE '45000';
 
-	IF NEW.Startdate > NEW.Enddate THEN
+	IF NEW.Enddate != 0 AND NEW.Startdate > NEW.Enddate THEN
 		SIGNAL dateError
 			SET MESSAGE_TEXT = 'La date de debut est postérieure a la fin du match' , MYSQL_ERRNO = 1002;
 	ELSE
@@ -283,9 +283,9 @@ BEGIN
 				SET MESSAGE_TEXT = 'La date de début du match est anterieure au commencement de la competition' , MYSQL_ERRNO = 1002;
 		ELSE
 			SET @contestEnddate := (SELECT Enddate FROM `contest` WHERE idCONTEST = NEW.idCONTEST);
-			IF NEW.Enddate > @contestEnddate THEN
+			IF @contestEnddate != 0 AND NEW.Enddate > @contestEnddate THEN
 				SIGNAL dateError
-					SET MESSAGE_TEXT = 'La date de fin du match est postérieur a la fin de la competition' , MYSQL_ERRNO = 1002;
+					SET MESSAGE_TEXT = 'La date de fin du match est posterieure a la fin de la competition' , MYSQL_ERRNO = 1002;
 			END IF;
 		END IF;
 	END IF;

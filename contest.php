@@ -17,6 +17,7 @@ if($contests){
 	{
 		?>
 		Nom : <?php echo $contest->Name ?><br/>
+		Description : <?php echo $contest->Description ?><br/>
 		Prix : <?php echo $contest->Price ?><br/>
 		Commencé le <?php echo getDateFormateeFromTimeStamp($contest->Startdate) ?><br/>
 		Lieu : <?php echo $contest->Location ?><br/>
@@ -44,7 +45,7 @@ if($contests){
 			$oldSide = -1;
 			?>
 			<p>
-				<a href="view.php?view=matchProfil&id=<?php echo $match->idMATCH ?>"><?php echo $match->Description ?></a>
+				<a href="view.php?view=matchProfile&id=<?php echo $match->idMATCH ?>"><?php echo $match->Description ?></a>
 				<br/>
 
 				<?php										if ($competitors)					{
@@ -54,20 +55,22 @@ if($contests){
 							if (!$first){
 								echo "vs</br>";
 							}
-							$sqlRequest = "SELECT *
-							FROM match_score AS ms
-							INNER JOIN `match` AS m ON m.idMATCH = ms.MATCH_idMATCH
+							$sqlRequest = "SELECT s.Score
+							FROM `match` AS m
+							INNER JOIN match_score AS ms ON m.idMATCH = ms.MATCH_idMATCH
 							INNER JOIN `score` AS s ON s.idSCORE = ms.SCORE_idSCORE
 							WHERE ms.MATCH_idMATCH=:idMatch
 							AND ms.Side = :Side";
 							$score = $conBdd->pdoExecute($sqlRequest, array(':idMatch' => $match->idMATCH, ':Side' => $competitor->Side));
 							
-							echo $competitor->Side.", score : ". print_r($score)."<br/>";
+							$scoreTeam = $score[0]->Score?$score[0]->Score:"NC";
+							
+							echo $competitor->Side.", score : " . $scoreTeam. "<br/>";;
 							$oldSide = $competitor->Side;
 							$first = false;
 						}
 						?>
-						<a href="view.php?view=gamerProfil&id=<?php echo $competitor->idGAMER ?>"><?php echo $competitor->Name ?></a>
+						<a href="view.php?view=gamerProfile&id=<?php echo $competitor->idGAMER ?>"><?php echo $competitor->Name ?></a>
 						<br/>
 
 						<?php

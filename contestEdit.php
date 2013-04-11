@@ -7,44 +7,84 @@ echo "<br/>";
 $id = intval($_GET['id']);
 
 if ($_POST){
-	$nomMatch = $_POST['nomMatch']!=""?$_POST['nomMatch']:"Match sans nom";
-	$nbTeam = $_POST['nbTeam'];
-	$nbTeammate = $_POST['nbTeammate'];
-	
-	if ($nbTeam > 0)
+	if($_POST['createMatch'])
 	{
-		try {
-			$success = $conBdd->pdoExecute("INSERT INTO `hackjackbet`.`match` (Description, StartDate, idContest) VALUES(
-			:description, NOW(), :idContest)",array(
-				':description'=>$nomMatch,
-				':idContest'=>$id,
-			));
-			echo $lastinsertid = $conBdd->connexion->lastinsertid();
-			$c = 0;
-			for ($i = 1; $i <= $nbTeam; $i++)
-			{
-				for ($j = 1 ; $j <= $nbTeammate; $j++)
+		$nomMatch = $_POST['nomMatch']!=""?$_POST['nomMatch']:"Match sans nom";
+		$nbTeam = $_POST['nbTeam'];
+		$nbTeammate = $_POST['nbTeammate'];
+		
+		if ($nbTeam > 0)
+		{
+			try {
+				$success = $conBdd->pdoExecute("INSERT INTO `hackjackbet`.`match` (Description, StartDate, idContest) VALUES(
+				:description, NOW(), :idContest)",array(
+					':description'=>$nomMatch,
+					':idContest'=>$id,
+				));
+				
+				echo $lastinsertid = $conBdd->connexion->lastinsertid();
+				$c = 0;
+				for ($i = 1; $i <= $nbTeam; $i++)
 				{
-					$success = $conBdd->pdoExecute("INSERT INTO `hackjackbet`.`match_gamer` VALUES(
-					:idGamer, :idMatch, :side)",array(
-						':idGamer'=>$_POST['teammate'][$c],
-						':idMatch'=>$lastinsertid,
-						':side'=>"team$i",
-					));
-					$c++;
+					for ($j = 1 ; $j <= $nbTeammate; $j++)
+					{
+						$success = $conBdd->pdoExecute("INSERT INTO `hackjackbet`.`match_gamer` VALUES(
+						:idGamer, :idMatch, :side)",array(
+							':idGamer'=>$_POST['teammate'][$c],
+							':idMatch'=>$lastinsertid,
+							':side'=>"team$i",
+						));
+						$c++;
+					}
 				}
-			}
 
-			
-			 
-			echo "Enregistrement réussi";
-		} catch( Exception $e ){
-		  echo 'Erreur de requète : ', $e->getMessage();
+				
+				 
+				echo "Enregistrement réussi";
+			} catch( Exception $e ){
+			  echo 'Erreur de requète : ', $e->getMessage();
+			}
+		}else{
+			echo "Vous n'avez defini aucune equipe";
 		}
-	}else{
-		echo "Vous n'avez defini aucune equipe";
+		echo "<br/>";
 	}
-	echo "<br/>";
+	else
+	{
+		if ($_POST['addScore'])
+		{
+			$side = $_POST['side'];
+			$score = $_POST['score'];
+			$idMatch =  $_POST['idMatch'];
+			if ($score)
+			{
+				try {
+					$success = $conBdd->pdoExecute("UPDATE `hackjackbet`.`match` SET 
+					`match`.Enddate = NOW() WHERE `match`.idMATCH = :idMATCH",array(
+						':idMATCH'=>$idMatch,
+					));
+					$success = $conBdd->pdoExecute("INSERT INTO `hackjackbet`.`score` VALUES(
+					NULL, :score)",array(
+						':score'=>$score,
+					));
+					echo $lastinsertid = $conBdd->connexion->lastinsertid();
+					$success = $conBdd->pdoExecute("INSERT INTO `hackjackbet`.`match_score` VALUES(
+					:idScore, :idMatch, :side)",array(
+						':idScore'=>$lastinsertid,
+						':idMatch'=>$idMatch,
+						':side'=>$side,
+					));
+					
+					 
+					echo "Enregistrement du score réussi";
+				} catch( Exception $e ){
+				  echo 'Erreur de requète : ', $e->getMessage();
+				}
+			}else{
+				echo "Veuillez definir un score";
+			}
+		}
+	}
 }
 
 
@@ -91,7 +131,7 @@ if($contests)
 			$oldSide = -1;
 			?>
 			<p>
-				<a href="view.php?view=matchProfil&id=<?php echo $match->idMATCH ?>"><?php echo $match->Description ?></a>
+				<a href="view.php?view=matchProfile&id=<?php echo $match->idMATCH ?>"><?php echo $match->Description ?></a>
 				<br/>
 
 				<?php						
@@ -105,22 +145,28 @@ if($contests)
 							{
 								echo "vs</br>";
 							}
-							$sqlRequest = "SELECT *
-							FROM match_score AS ms
-							INNER JOIN `match` AS m ON m.idMATCH = ms.MATCH_idMATCH
+							$sqlRequest = "SELECT s.Score
+							FROM `match`  AS m
+							INNER JOIN match_score AS ms ON m.idMATCH = ms.MATCH_idMATCH
 							INNER JOIN `score` AS s ON s.idSCORE = ms.SCORE_idSCORE
 							WHERE ms.MATCH_idMATCH=:idMatch
 							AND ms.Side = :Side";
 							$score = $conBdd->pdoExecute($sqlRequest, array(':idMatch' => $match->idMATCH, ':Side' => $competitor->Side));
-							echo $competitor->Side.", score : " . print_r($score);
+							$scoreTeam = $score[0]->Score?$score[0]->Score:"NC";
+							
+							echo $competitor->Side.", score : " . $scoreTeam . "<br/>";
 							echo "<form action='contestEdit.php?id=$id' method='post'>";
-							echo "<input type='text' name='score' />";
-							echo "<input type='submit' value='Valider ce resultat'><br/>";
+								echo "<input type='text' name='score' size='4'/>";
+								echo "<input type='hidden' name='addScore' value='1'>";
+								echo "<input type='hidden' name='idMatch' value='".$match->idMATCH."'>";
+								echo "<input type='hidden' name='side' value='".$competitor->Side."'>";
+								echo "<input type='submit' value='Valider ce resultat'><br/>";
+							echo "</form>";
 						}
 						$oldSide = $competitor->Side;
 						$first = false;
 						?>
-						<a href="view.php?view=gamerProfil&id=<?php echo $competitor->idGAMER ?>"><?php echo $competitor->Name ?></a>
+						<a href="view.php?view=gamerProfile&id=<?php echo $competitor->idGAMER ?>"><?php echo $competitor->Name ?></a>
 						<br/>
 
 						<?php
@@ -179,6 +225,7 @@ if($contests)
 		<input type="button" onclick="newTeam()" value="Ajouter une equipe"/>
 		<span id="nbteammate"><input type="button" onclick="addTeammate()" value="Augmenter le nombre de coequipiers"/>
 		<input type="button" onclick="removeTeammate()" value="Reduire le nombre de coequipiers"/></span>
+		<input type="hidden" name="createMatch" value="1">
 		<p><input type="submit" value="Valider ce match"></p>
 	</form>
 	<?php

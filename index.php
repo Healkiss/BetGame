@@ -45,11 +45,12 @@ include("Banniere.php");
 		Matchs en cours : <br/>
 		<?php
 		$onGoingMatches = $conBdd->pdoExecute("
-SELECT m.* , contest.Name contestName
-FROM `match`  m
-LEFT JOIN contest USING(idCONTEST) 
-WHERE m.Startdate < NOW() AND m.Enddate > NOW()
-ORDER BY m.Startdate DESC");
+			SELECT m.* , contest.Name contestName
+			FROM `match` AS m
+			LEFT JOIN contest USING(idCONTEST) 
+			WHERE m.Startdate < NOW()
+				AND m.Enddate = 0
+			ORDER BY m.Startdate DESC");
 		if (count($onGoingMatches) == 0)
 			echo "Il n'y a pas de match qui se déroule en ce moment.";
 		else
@@ -61,13 +62,13 @@ ORDER BY m.Startdate DESC");
 		Prochains matchs : <br/>
 		<?php
 		$futureMatches = $conBdd->pdoExecute("
-SELECT m.* , contest.Name contestName
-FROM `match` m
-LEFT JOIN contest USING(idCONTEST) 
-WHERE m.Startdate > NOW()
-ORDER BY m.Startdate ASC");
+			SELECT m.* , contest.Name contestName
+			FROM `match` AS m
+			LEFT JOIN contest USING(idCONTEST) 
+			WHERE m.Startdate > NOW()
+			ORDER BY m.Startdate ASC");
 		if (count($futureMatches) == 0)
-			echo "Il n'y a aucun match de planifié.";
+			echo "Il n'y a aucun match planifié.";
 		else
 			foreach ($futureMatches as $match)
 				echo '<a href="view.php?view=matchProfile&id=' . $match->idMATCH . '">' . $match->contestName . ' - ' . $match->Description . '</a><br />';
@@ -77,11 +78,11 @@ ORDER BY m.Startdate ASC");
 		Matchs récemment terminés : <br/>
 		<?php
 		$lastFinishedMatches = $conBdd->pdoExecute("
-SELECT m.* , contest.Name contestName
-FROM `match` m 
-LEFT JOIN contest USING(idCONTEST) 
-WHERE m.Enddate < NOW()
-ORDER BY m.Enddate DESC");
+			SELECT m.* , contest.Name contestName
+			FROM `match` m 
+			LEFT JOIN contest USING(idCONTEST) 
+			WHERE m.Enddate < NOW()
+			ORDER BY m.Enddate DESC");
 		if (count($lastFinishedMatches) == 0)
 			echo "Aucun.";
 		else
@@ -127,6 +128,12 @@ ORDER BY m.Enddate DESC");
 		?>
 	</div>
 </div>
+<br/>
+<hr/>
+<br/>
+<div class="row-fluid text-center"> 
+	<h3><a href="list.php">Accéder aux listes</a></h3>
+</div> 
 <?php
 include("Footer.php");
 ?>

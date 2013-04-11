@@ -1,5 +1,4 @@
 <?php
-
 include("Header.php");
 include("Banniere.php");
 
@@ -39,7 +38,7 @@ function displayUserProfile($database, $id)
 		echo 'Utilisateur : ' . $user->Nickname . '<br />';
 		echo 'Nom complet : ' . $user->Name . '</br/>';
 		echo 'Banque : ' . $user->Bank . '</br/>';
-		echo 'Date d\'inscription : ' . getDateFormateeFromTimeStamp($user->RegistrationDate);
+		echo 'Date d\'inscription : ' . date('d/m/Y \à H\:i', strtotime($user->RegistrationDate));
 	}
 }
 
@@ -50,11 +49,11 @@ function displayContestProfile($database, $id)
 	{
 		echo 'Nom : ' . $contest->Name . '<br />';
 		echo 'Prix : ' . $contest->Price . '<br />';
-		echo 'Commencé le ' . getDateFormateeFromTimeStamp($contest->Startdate) . '<br />';
+		echo 'Commencé le ' . date('d/m/Y \à H\:i', strtotime($contest->Startdate)) . '<br />';
 		echo 'Lieu : ' . $contest->Location . '<br />';
 		if ($contest->Enddate != 0)
 		{
-			echo 'Finie le : ' . getDateFormateeFromTimeStamp($contest->Enddate) . '<br />';
+			echo 'Finie le : ' . date('d/m/Y \à H\:i', strtotime($contest->Enddate)) . '<br />';
 		}
 		else
 		{
@@ -90,41 +89,105 @@ WHERE idVIDEOGAME=:id";
 function displayMatchProfile($database, $id)
 {
 	$sqlRequest = "
-SELECT m.* , contest.Name contestName
-FROM `match` m
-LEFT JOIN contest USING(idCONTEST) 
-WHERE idMATCH=:id";
+		SELECT m.* , contest.Name contestName
+		FROM `match` m
+		LEFT JOIN contest USING(idCONTEST) 
+		WHERE idMATCH=:id";
 	$matches = $database->pdoExecute($sqlRequest, array(':id' => $id));
-	echo '<h3><a href="view.php?view=contestProfile&id="' . $matches[0]->idCONTEST . '>' . $matches[0]->contestName . '</a> - ' . $matches[0]->Description . '</h3>';
+	echo "<h3><a href='view.php?view=contestProfile&id=".$matches[0]->idCONTEST."'>" . $matches[0]->contestName . '</a> - ' . $matches[0]->Description . '</h3>';
 	echo 'Débute le ' . date('d/m/Y \à H\:i', strtotime($matches[0]->Startdate)) . '<br />';
 	echo 'Termine le ' . date('d/m/Y \à H\:i', strtotime($matches[0]->Enddate)) . '<br />';
+	$sqlRequest = "SELECT *
+		FROM match_gamer AS mg
+		INNER JOIN gamer AS g ON g.idGAMER = mg.GAMER_idGAMER
+		WHERE mg.MATCH_idMATCH=:id
+		ORDER BY mg.Side";
+	$competitors = $database->pdoExecute($sqlRequest, array(':id' => $id));
+	//print_r($competitors);
 	echo '
 		<table class="table table-striped table-bordered">
 			<thead>
 				<tr>
-					<th>Joueurs</th>
+					<th>Equipe</th>
+					<th>Composition</th>
+					<th>Score</th>
 				</tr>
-			</thead>';
-	$sqlRequest = "
-SELECT * FROM match_gamer AS mg 
-INNER JOIN gamer AS g ON g.idGAMER = mg.GAMER_idGAMER
-WHERE mg.MATCH_idMATCH=:id";
-	$competitors = $database->pdoExecute($sqlRequest, array(':id' => $id));
-	foreach ($competitors as $competitor)
-		echo "
-			<tbody>
-				<tr>
-					<td><a href='view.php?view=userProfile&id=" . $competitor->idGAMER . "'>" . $competitor->Name . "</a></td>
-				</tr>
-			</tbody>";
+			</thead>
+			<tbody>';
+			$first = true;
+			$oldSide = -1;			
+				if ($competitors)	
+				{
+					foreach ($competitors as $competitor)
+					{
+						echo "<tr>";
+							//if ($oldSide != $competitor->Side){
+								$sqlRequest = "SELECT s.Score
+								FROM `match` AS m
+								INNER JOIN match_score AS ms ON m.idMATCH = ms.MATCH_idMATCH
+								INNER JOIN `score` AS s ON s.idSCORE = ms.SCORE_idSCORE
+								WHERE ms.MATCH_idMATCH=:idMatch
+								AND ms.Side = :Side";
+								$score = $database->pdoExecute($sqlRequest, array(':idMatch' => $id, ':Side' => $competitor->Side));
+								
+								$scoreTeam = $score[0]->Score?$score[0]->Score:"NC";
+								echo "<td>" . $competitor->Side. "</td>";
+								echo "<td><a href='view.php?view=gamerProfile&id=".$competitor->idGAMER."'>".$competitor->Name."</a></td>";
+								echo "<td>" . $scoreTeam. "</td>";
+								/*if ($first){
+									echo "<tr>";
+								}
+								if (!$first){
+									echo "</tr>";
+									echo "<tr>";
+								}*/
+								$oldSide = $competitor->Side;
+								$first = false;
+						echo "</tr>";
+							//}
+						
+					}
+				}
+				?>
+			</tbody>
+			<?php
 	echo "</table>";
 }
 
 function displayGamerProfile($database, $id)
 {
-	$gamers = $database->pdoExecute("SELECT * FROM gamer WHERE idGAMER=:id", array(':id' => $id));
-	foreach ($gamers as $gamer)
-		echo 'Nom : ' . $gamer->Name . '<br />';
+	$gamers = $database->pdoExecute("
+SELECT gamer.idGAMER, gamer.Name, gamer.Birthdate , gamer.Description , country.nameFR countryName , videogame.idVIDEOGAME , videogame.Name gamevideoName
+FROM `gamer`
+LEFT JOIN `country` USING(idCOUNTRY)
+LEFT JOIN `gamer_videogame` gv ON idGamer = GAMER_idGAMER
+LEFT JOIN `videogame` ON idVIDEOGAME = gv.VIDEOGAME_idVIDEOGAME
+WHERE idGAMER=:id", array(':id' => $id));
+	?>
+	<h3><?php echo $gamers[0]->Name ?></h3>
+	Date de naissance : <?php echo date('d/m/Y', strtotime($gamers[0]->Birthdate)) ?><br/>
+	Description : <?php echo $gamers[0]->Description ?><br/>
+	Pays : <?php echo $gamers[0]->countryName ?><br/>
+	<table class="table table-striped table-bordered">
+		<thead>
+			<tr>
+				<th>Jeux vidéos :</th>
+			</tr>
+		</thead>
+		<?php
+		foreach ($gamers as $videogame)
+		{
+			?>
+			<tbody>
+				<tr>
+					<td><a href="view.php?view=videogameProfile&id=<?php echo $videogame->idVIDEOGAME ?>"><?php echo $videogame->gamevideoName ?></a></td>
+				</tr>
+			</tbody>
+			<?php
+		}
+		?>
+	</table>
+	<?php
 }
 
 include("Footer.php");
